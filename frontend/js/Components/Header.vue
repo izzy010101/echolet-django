@@ -7,17 +7,20 @@ import Dropdown from '@/Components/Dropdown.vue'
 import DropdownLink from '@/Components/DropdownLink.vue'
 
 const {props} = usePage()
+const user = props.auth?.user
 const search = ref('')
 
 const {isDark, toggleDarkMode} = useDarkMode()
 const mobileMenuOpen = ref(false)
 
+console.log(user)
+
 function logout() {
-  router.post(route('logout'), {}, {
-    onSuccess: () => {
-      window.location.href = route('home');
-    },
-  });
+  router.post('/logout/', {}, {
+    onFinish: () => {
+      router.visit('/', { replace: true })
+    }
+  })
 }
 </script>
 
@@ -76,6 +79,11 @@ function logout() {
         <template v-if="!user">
           <Link href="/login" class="text-sm text-gray-700 dark:text-gray-300 hover:underline">Login</Link>
           <Link href="/register" class="text-sm text-gray-700 dark:text-gray-300 hover:underline">Register</Link>
+        </template>
+
+        <template v-if="user">
+          <span class="text-sm text-gray-700 dark:text-gray-300 mr-2">Welcome, {{ user.first_name || user.email }}</span>
+          <button @click="logout" class="text-sm text-red-600 dark:text-red-400 hover:underline">Logout</button>
         </template>
 
         <template v-else>

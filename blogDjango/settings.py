@@ -50,13 +50,13 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django_inertia.middleware.InertiaMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 INERTIA_TEMPLATE = 'app.html'
-ROOT_URLCONF = 'djangoProject1.urls'
+ROOT_URLCONF = 'blogDjango.urls'
 
 TEMPLATES = [
     {
@@ -74,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'djangoProject1.wsgi.application'
+WSGI_APPLICATION = 'blogDjango.wsgi.application'
 
 
 # Database
@@ -132,3 +132,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+DEBUG = True # Keep this as True for local development
+
+# IMPORTANT for local development over HTTP:
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
+# Also good to be explicit for development:
+CSRF_COOKIE_HTTPONLY = True # Prevent client-side JS from accessing CSRF cookie
+

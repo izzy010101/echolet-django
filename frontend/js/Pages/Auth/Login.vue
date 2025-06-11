@@ -63,7 +63,7 @@ const validateForm = () => {
 const submit = () => {
   if (!validateForm()) return;
 
-  form.post(route('login'), {
+  form.post('/login/', {
     onFinish: () => form.reset('password'),
   });
 };

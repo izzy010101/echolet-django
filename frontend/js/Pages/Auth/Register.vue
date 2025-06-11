@@ -6,7 +6,12 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { User, Mail, Lock, LogIn } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
-
+const props = defineProps({
+    errors: Object,
+    status: String,
+    old_input: Object,
+    csrf_token: String,
+});
 
 
 const form = useForm({
@@ -14,8 +19,9 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
+    _token: props.csrf_token,
 });
-
+console.log("Register.vue: Received csrf_token prop:", props.csrf_token);
 const validationErrors = ref({});
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -36,8 +42,14 @@ watch(() => form.data(), () => {
 }, { deep: true });
 
 const submit = () => {
-    form.post(route('register'), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
+  console.log("Register.vue: Submitting form data:", form.data());
+    form.post('/register/', {
+        onFinish: () => {
+            form.reset('password', 'password_confirmation');
+        },
+        onError: (errors) => {
+            console.error("Submission errors from server:", errors);
+        }
     });
 };
 </script>
