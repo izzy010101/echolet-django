@@ -144,3 +144,6 @@ SESSION_COOKIE_SECURE = False
 # Also good to be explicit for development:
 CSRF_COOKIE_HTTPONLY = True # Prevent client-side JS from accessing CSRF cookie
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media' #media including
+
