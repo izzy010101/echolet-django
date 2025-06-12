@@ -3,14 +3,20 @@ import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { Mail, Lock, LogIn, User } from 'lucide-vue-next';
+import { User, Mail, Lock, LogIn } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import debounce from 'lodash/debounce';
 
 const props = defineProps({
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
   status: String,
-  errors: Object,
-  old_input: Object,
+  old_input: {
+    type: Object,
+    default: () => ({}),
+  },
   csrf_token: String,
 });
 
@@ -43,11 +49,16 @@ watch(() => form.errors, (errors) => {
   validationErrors.value.password_confirmation = errors.password_confirmation || '';
 });
 
+watch(() => form.name, debounce((val) => {
+  if (!val) validationErrors.value.name = 'Name is required.';
+  else validationErrors.value.name = '';
+}, 300));
+
 watch(() => form.email, debounce((val) => {
   if (!val) validationErrors.value.email = 'Email is required.';
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) validationErrors.value.email = 'Please enter a valid email.';
   else validationErrors.value.email = '';
-}, 500));
+}, 300));
 
 watch(() => form.password, (val) => {
   if (!val) validationErrors.value.password = 'Password is required.';
@@ -55,23 +66,22 @@ watch(() => form.password, (val) => {
   else validationErrors.value.password = '';
 });
 
-const validateForm = () => {
-  if (!form.name) validationErrors.value.name = 'Name is required.';
-  if (!form.email) validationErrors.value.email = 'Email is required.';
-  if (!form.password) validationErrors.value.password = 'Password is required.';
-  if (!form.password_confirmation) validationErrors.value.password_confirmation = 'Confirmation is required.';
-  else if (form.password !== form.password_confirmation) validationErrors.value.password_confirmation = 'Passwords do not match.';
-
-  return !Object.values(validationErrors.value).some(msg => msg);
-};
+watch(() => form.password_confirmation, (val) => {
+  if (!val) validationErrors.value.password_confirmation = 'Confirmation is required.';
+  else if (val !== form.password) validationErrors.value.password_confirmation = 'Passwords do not match.';
+  else validationErrors.value.password_confirmation = '';
+});
 
 const submit = () => {
-  if (!validateForm()) return;
   form.post('/register/', {
-    onFinish: () => form.reset('password', 'password_confirmation'),
+    onFinish: () => {
+      form.reset('password', 'password_confirmation');
+    },
   });
 };
 </script>
+
+
 
 <template>
   <GuestLayout>

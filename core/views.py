@@ -92,6 +92,7 @@ class LogoutView(View):
         logout(request)
         return redirect(reverse_lazy('home'))
 
+
 class RegisterPageView(View):
     def get(self, request):
         csrf_token = get_token(request)
@@ -138,7 +139,7 @@ class RegisterPageView(View):
                     'csrf_token': get_token(request),  #Re-send token if rendering again
                 })
 
-        # ❗ Validation failed — always send dict
+        #Validation failed — always send dict
         return Inertia.render(request, 'Auth/Register', {
             'errors': form.errors.get_json_data() if form.errors else {},
             'status': 'Please correct the errors below.',
