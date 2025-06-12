@@ -14,7 +14,7 @@ from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model, update_session_auth_hash, logout, login, authenticate
@@ -27,7 +27,7 @@ User = get_user_model()
 class TestView(View):
     def get(self, request):
         return Inertia.render(request, component='Test', props={'message': 'Zdravo iz Djangoa!'})
-
+'''
 class CategoriesPageView(View):
     def get(self, request):
         categories = Category.objects.all().values('id', 'name')
@@ -35,7 +35,7 @@ class CategoriesPageView(View):
         return Inertia.render(request, 'CategoriesPage', {
             'categories': list(categories),
         })
-
+'''
 class HomeView(View):
     def get(self, request):
         posts = Post.objects.order_by('-published_at')[:10]
@@ -318,3 +318,68 @@ class CreatePostView(LoginRequiredMixin, View):
 
         return JsonResponse({'message': 'Post created successfully.'})
 
+class PostDetailView(View):
+    def get(self, request, post_id):
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return JsonResponse({'error': 'Post not found'}, status=404)
+
+        serialized_post = PostSerializer(post).data
+
+        return Inertia.render(request, 'Posts/Show', {
+            'post': serialized_post,
+            'auth': {
+                'user': {
+                    'id': request.user.id,
+                    'email': request.user.email,
+                } if request.user.is_authenticated else None
+            }
+        })
+
+class CategoryDetailView(View):
+    def get(self, request, category_id):
+        category = get_object_or_404(Category, id=category_id)
+        posts = Post.objects.filter(category=category)
+        categories = list(Category.objects.all().values('id', 'name'))
+
+        return Inertia.render(request, 'Categories/Show', {
+            'category': {
+                'id': category.id,
+                'name': category.name,
+            },
+            'posts': list(posts.values('id', 'title', 'excerpt')),
+            'categories': categories,
+            'auth': {
+                'user': {
+                    'id': request.user.id,
+                    'email': request.user.email,
+                } if request.user.is_authenticated else None
+            }
+        })
+
+class CategoriesPageView(View):
+    def get(self, request):
+        categories = []
+
+        for category in Category.objects.all():
+            posts = Post.objects.filter(category=category).values(
+                'id', 'title', 'excerpt', 'body'
+            )
+
+            categories.append({
+                'id': category.id,
+                'name': category.name,
+                'image': category.image.url if category.image else None,
+                'posts': list(posts),
+            })
+
+        return Inertia.render(request, 'Categories/Index', {
+            'categories': categories,
+            'auth': {
+                'user': {
+                    'id': request.user.id,
+                    'email': request.user.email,
+                } if request.user.is_authenticated else None
+            }
+        })

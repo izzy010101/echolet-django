@@ -16,6 +16,8 @@ class User(AbstractUser):
 class Category(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='category_images/', null=True, blank=True)
+    icon = models.ImageField(upload_to='category_icons/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

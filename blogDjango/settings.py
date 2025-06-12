@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 INERTIA_TEMPLATE = 'app.html'
 ROOT_URLCONF = 'blogDjango.urls'
 

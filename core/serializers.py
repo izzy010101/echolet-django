@@ -5,7 +5,7 @@ from core.models import User
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['id', 'title', 'excerpt', 'body', 'slug', 'published_at', 'user_id']
+        fields = ['id', 'title', 'excerpt', 'body', 'slug', 'published_at', 'user_id', 'category']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
