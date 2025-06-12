@@ -46,7 +46,7 @@ const props = defineProps({
                 </button>
               </div>
               <div class="relative">
-                <img :src="featured.image ?? '/images/sample.jpg'" alt="Featured" class="rounded-xl shadow-lg" />
+                <img :src="featured.image ?? '/media/images/sample.jpg'" alt="Featured" class="rounded-xl shadow-lg" />
               </div>
             </div>
           </div>

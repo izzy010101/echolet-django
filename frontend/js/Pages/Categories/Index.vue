@@ -37,19 +37,19 @@ console.log(currentCategory)
                         :key="category.id"
                         @click="selectCategory(index)"
                         :class="[
-              'cursor-pointer flex items-center gap-4 p-3 rounded-xl transition-all',
-              index === currentIndex ? 'bg-white/80 dark:bg-white/20 shadow-lg scale-105' : 'hover:bg-white/30 dark:hover:bg-white/10'
-            ]"
+                          'cursor-pointer flex items-center gap-4 p-3 rounded-xl transition-all',
+                          index === currentIndex ? 'bg-white/80 dark:bg-white/20 shadow-lg scale-105' : 'hover:bg-white/30 dark:hover:bg-white/10'
+                        ]"
                     >
-                        <img
-                            :src="category.image || '/placeholder.svg'"
-                            alt=""
-                            class="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                        />
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ category.name }}</h2>
-                            <p class="text-gray-600 dark:text-gray-300 text-sm max-w-xs truncate">{{ category.description }}</p>
-                        </div>
+                    <img
+                      :src="category.image"
+                      alt="Category"
+                      class="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                    />
+                      <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ category.name }}</h2>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm max-w-xs truncate">{{ category.description }}</p>
+                      </div>
                     </li>
                 </ul>
             </nav>

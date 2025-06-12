@@ -29,7 +29,7 @@ User = get_user_model()
 class TestView(View):
     def get(self, request):
         return Inertia.render(request, component='Test', props={'message': 'Zdravo iz Djangoa!'})
-'''
+
 class CategoriesPageView(View):
     def get(self, request):
         categories = Category.objects.all().values('id', 'name')
@@ -37,7 +37,7 @@ class CategoriesPageView(View):
         return Inertia.render(request, 'CategoriesPage', {
             'categories': list(categories),
         })
-'''
+
 class HomeView(View):
     def get(self, request):
         posts = Post.objects.order_by('-published_at')[:10]
