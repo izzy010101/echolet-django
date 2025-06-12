@@ -46,11 +46,11 @@ const categories = props.categories || []
                 <!-- Categories -->
                 <div>
                     <h3 class="text-sm font-semibold text-black dark:text-white uppercase mb-3">Categories</h3>
-                    <ul class="space-y-2 text-sm">
+                    <ul class="space-y-1">
                         <li v-for="category in categories" :key="category.id">
-                            <a href="#" class="hover:text-pink-500 dark:hover:text-pink-400">
-                                {{ category.name }}
-                            </a>
+                            <Link :href="`/categories/${category.id}`" class="hover:text-pink-500 dark:hover:text-pink-400">
+                              {{ category.name }}
+                            </Link>
                         </li>
                     </ul>
                 </div>

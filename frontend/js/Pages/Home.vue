@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Head } from '@inertiajs/vue3';
-
+import { Link } from '@inertiajs/vue3'
 const props = defineProps({
   featured: Object,
   posts: Array,
@@ -59,8 +59,9 @@ const props = defineProps({
               <p class="text-sm text-gray-500 mb-2">
                 Published: {{ new Date(post.published_at).toLocaleDateString() }}
               </p>
-              <p class="text-sm text-gray-500 mb-4">Author ID: {{ post.user_id }}</p>
-              <button class="text-sm text-blue-600 hover:underline">Read more →</button>
+              <Link :href="`/posts/${post.id}/`" class="text-blue-600 hover:underline">
+                Read more ->
+              </Link>
             </div>
           </div>
         </div>

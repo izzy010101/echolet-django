@@ -39,11 +39,11 @@ function logout() {
         <Link href="/" class="text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition">
           Home
         </Link>
-        <Link href="/topics"
-              class="text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition">Topics
+        <Link href="/blog"
+              class="text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition">Blog
         </Link>
-        <Link href="/about"
-              class="text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition">About
+        <Link href="/categories"
+              class="text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition">Categories
         </Link>
       </nav>
 
