@@ -99,6 +99,7 @@ class RegisterPageView(View):
             'errors': {},
             'status': request.session.pop('status', None),
             'csrf_token': csrf_token,
+            'old_input': {},
         })
 
     def post(self, request):

@@ -7,20 +7,28 @@ import { User, Mail, Lock, LogIn } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 const props = defineProps({
-    errors: Object,
-    status: String,
-    old_input: Object,
-    csrf_token: String,
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+  status: String,
+  old_input: {
+    type: Object,
+    default: () => ({}),
+  },
+  csrf_token: String,
 });
 
 
 const form = useForm({
-    name: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
-    _token: props.csrf_token,
+  name: props.old_input?.name || '',
+  email: props.old_input?.email || '',
+  password: '',
+  password_confirmation: '',
+  _token: props.csrf_token,
 });
+
+
 console.log("Register.vue: Received csrf_token prop:", props.csrf_token);
 const validationErrors = ref({});
 
@@ -52,6 +60,7 @@ const submit = () => {
         }
     });
 };
+
 </script>
 
 <template>
