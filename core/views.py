@@ -21,8 +21,10 @@ from django.contrib.auth import get_user_model, update_session_auth_hash, logout
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.mixins import LoginRequiredMixin
+from .forms import RegisterForm
 
 User = get_user_model()
+
 
 class TestView(View):
     def get(self, request):
@@ -90,7 +92,6 @@ class LogoutView(View):
         logout(request)
         return redirect(reverse_lazy('home'))
 
-
 class RegisterPageView(View):
     def get(self, request):
         csrf_token = get_token(request)
@@ -113,39 +114,38 @@ class RegisterPageView(View):
         if form.is_valid():
             try:
                 user = form.save()
-
                 login(request, user)
 
                 try:
                     send_mail(
-                        'Welcome to My Django App!',
-                        'Thank you for registering. We are excited to have you!',
+                        'Welcome!',
+                        'Thanks for joining.',
                         settings.DEFAULT_FROM_EMAIL,
                         [user.email],
-                        fail_silently=False,
+                        fail_silently=True,
                     )
-
                 except Exception as e:
-                    print(f"Error sending welcome email to {user.email}: {e}")
+                    print(f"Email error: {e}")
 
-                request.session['status'] = 'Registration successful! Welcome.'
-
+                request.session['status'] = 'Registration successful!'
                 return Inertia.location(reverse_lazy('home'))
 
             except IntegrityError:
                 return Inertia.render(request, 'Auth/Register', {
-                    'errors': {'email': ['A user with that email already exists.']},
-                    'status': 'An error occurred during registration.',
-                    'old_input': request.POST.dict()
+                    'errors': {'email': ['User already exists.']},
+                    'status': 'Email already in use.',
+                    'old_input': data,
+                    'csrf_token': get_token(request),  #Re-send token if rendering again
                 })
 
-        else:
-            print(f"Form errors: {form.errors.as_json()}")
-            return Inertia.render(request, 'Auth/Register', {
-                'errors': form.errors.get_json_data(),
-                'status': 'Please correct the errors below.',
-                'old_input': request.POST.dict()
-            })
+        # ❗ Validation failed — always send dict
+        return Inertia.render(request, 'Auth/Register', {
+            'errors': form.errors.get_json_data() if form.errors else {},
+            'status': 'Please correct the errors below.',
+            'old_input': data,
+            'csrf_token': get_token(request),
+        })
+
 
 class DashboardView(LoginRequiredMixin, View):
     def get(self, request):
