@@ -9,7 +9,7 @@ import debounce from 'lodash/debounce';
 
 const props = defineProps({
   errors: {
-    type: Object,
+    type: [Object, Boolean], //allowing both
     default: () => ({}),
   },
   status: String,

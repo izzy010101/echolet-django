@@ -19,6 +19,11 @@ export default defineConfig({
   },
   server: {
     port: 5171,
+    proxy: {
+    '/register/': 'http://127.0.0.1:8000',
+    '/login/': 'http://127.0.0.1:8000',
+    // more backend routes if needed
+    },
     hot: true,
   },
 })

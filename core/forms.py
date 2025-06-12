@@ -32,7 +32,7 @@ class RegisterForm(forms.Form):
     def clean_password(self):
         password = self.cleaned_data['password']
         try:
-            validate_password(password, None)  # Pass None instead of self.instance
+            validate_password(password, None)
         except ValidationError as e:
             raise forms.ValidationError(list(e.messages))
         return password
@@ -47,6 +47,7 @@ class RegisterForm(forms.Form):
         return cleaned_data
 
     def save(self, commit=True):
+        print("Cleaned name value:", self.cleaned_data.get('name'))  # Debug
         user = User.objects.create_user(
             username=self.cleaned_data['email'],
             email=self.cleaned_data['email'],
