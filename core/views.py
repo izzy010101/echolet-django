@@ -32,13 +32,6 @@ class TestView(View):
     def get(self, request):
         return Inertia.render(request, component='Test', props={'message': 'Zdravo iz Djangoa!'})
 
-class CategoriesPageView(View):
-    def get(self, request):
-        categories = Category.objects.all().values('id', 'name')
-
-        return Inertia.render(request, 'CategoriesPage', {
-            'categories': list(categories),
-        })
 
 class HomeView(View):
     def get(self, request):
@@ -414,6 +407,8 @@ class CategoryDetailView(View):
 
 class CategoriesPageView(View):
     def get(self, request):
+
+
         categories = []
 
         for category in Category.objects.all():
@@ -425,8 +420,18 @@ class CategoriesPageView(View):
                 'id': category.id,
                 'name': category.name,
                 'image': category.image.url if category.image else None,
-                'posts': list(posts),
+                'posts': [dict(p) for p in posts],
             })
+
+        print({
+            'categories': categories,
+            'auth': {
+                'user': {
+                    'id': request.user.id,
+                    'email': request.user.email,
+                } if request.user.is_authenticated else None
+            }
+        })
 
         return Inertia.render(request, 'Categories/Index', {
             'categories': categories,
@@ -437,3 +442,7 @@ class CategoriesPageView(View):
                 } if request.user.is_authenticated else None
             }
         })
+
+class ContactView(View):
+    def get(self, request):
+        return Inertia.render(request, 'Contact')

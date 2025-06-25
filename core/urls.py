@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import HomeView, TestView, CategoriesPageView, LoginPageView, RegisterPageView, LogoutView, DashboardView, \
     ProfileView, UpdateProfileView, UpdatePasswordView, DeleteAccountView, CreatePostView, PostDetailView, \
-    CategoryDetailView, BlogIndexView
+    CategoryDetailView, BlogIndexView, ContactView
 
 urlpatterns = [
     # path('home/', views.home_view, name='home'),
@@ -20,4 +20,5 @@ urlpatterns = [
     path('categories/', CategoriesPageView.as_view(), name='categories.index'),
     path('categories/<int:category_id>/', CategoryDetailView.as_view(), name='categories.show'),
     path('blog/', BlogIndexView.as_view(), name='blog_index'),
+    path('contact/', ContactView.as_view(), name='contact'),
 ]

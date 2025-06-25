@@ -5,10 +5,12 @@ import {useDarkMode} from '@/Composables/useDarkMode'
 import {Moon, Sun} from 'lucide-vue-next'
 import Dropdown from '@/Components/Dropdown.vue'
 import DropdownLink from '@/Components/DropdownLink.vue'
+import SearchBar from '@/Components/SearchBar.vue'
 
 const {props} = usePage()
 const user = props.auth?.user
 const search = ref('')
+const routeName = usePage().component
 
 const {isDark, toggleDarkMode} = useDarkMode()
 const mobileMenuOpen = ref(false)

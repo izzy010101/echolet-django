@@ -1,31 +1,30 @@
-// frontend/js/app.js 
+// frontend/js/app.js (or main.js)
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import '../css/app.css';
 
-const appName = document.title || 'Echolet App';
+// Define your app name. You can pass this from Django as a prop if it's dynamic.
+const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'My Django App';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
 
     resolve: (name) => {
-        const pages = import.meta.glob('./Pages/**/*.vue', { eager: true }); // ✅ RELATIVE TO js/
-        const path = `./Pages/${name}.vue`; // ✅ matches the glob keys exactly
+        const pages = import.meta.glob('../js/Pages/**/*.vue', { eager: true });
+        const path = `./Pages/${name}.vue`;
 
         if (!pages[path]) {
-            console.error('Available pages:', Object.keys(pages)); // for debugging
-            throw new Error(`Inertia: Component "${name}" not found. Expected path: "${path}"`);
+            throw new Error(`Inertia: Component not found for name "${name}". Expected path: "${path}".`);
         }
 
         return pages[path].default;
     },
 
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        return createApp({ render: () => h(App, props) })
             .use(plugin)
             .mount(el);
     },
-
     progress: {
         color: '#4B5563',
     },

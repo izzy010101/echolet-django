@@ -10,5 +10,5 @@ def get_auth_user(request):
 
 Inertia.share({
     'auth': get_auth_user,
-    'categories': lambda request: list(Category.objects.values('id', 'name'))
+    'footerCategories': lambda request: list(Category.objects.values('id', 'name'))
 })

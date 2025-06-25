@@ -2,12 +2,13 @@
 import Header from '@/Components/Header.vue'
 import Footer from '@/Components/Footer.vue'
 import {Head, Link} from '@inertiajs/vue3'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
     auth: Object,
     categories: Array,
 })
+
 
 const currentIndex = ref(0)
 const currentCategory = computed(() => props.categories[currentIndex.value])
@@ -16,9 +17,17 @@ function selectCategory(index) {
     currentIndex.value = index
 }
 
-console.log(props.categories)
-console.log(currentCategory)
+console.log("🔍 Inertia page props:", props.value)
 
+console.log("current")
+console.log(currentCategory)
+console.log(props.categories)
+
+watch(currentCategory, (val) => {
+    console.log("🟢 currentCategory updated:", val)
+    console.log(props.categories)
+    console.log(val.posts)
+}, { immediate: true })
 </script>
 
 <template>
@@ -57,7 +66,7 @@ console.log(currentCategory)
             <!-- Right: Posts for Selected Category -->
             <section class="flex-1 overflow-y-auto max-h-[80vh] p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-lg">
                 <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
-                    Posts in "{{ currentCategory.name }}"
+                    Posts in "{{ currentCategory?.name || '...' }}"
                 </h2>
 
                 <div
@@ -72,10 +81,10 @@ console.log(currentCategory)
                         <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-white">{{ post.title }}</h3>
                         <p class="text-gray-700 dark:text-gray-300 flex-grow">{{ post.excerpt || post.content.slice(0, 100) + '...' }}</p>
                         <Link
-                            :href="route('posts.show', post.id)"
-                            class="mt-4 inline-block text-primary hover:underline"
+                          :href="`/posts/${post.id}`"
+                          class="mt-4 inline-block text-primary hover:underline"
                         >
-                            Read more
+                          Read more
                         </Link>
                     </article>
                 </div>

@@ -56,12 +56,16 @@ const props = defineProps({
 
           <!-- Latest Stories -->
           <div class="grid lg:grid-cols-3 gap-8">
-            <div v-for="post in posts" :key="post.id" class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-              <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ post.title }}</h3>
-              <p class="text-gray-600 mb-4">{{ post.excerpt }}</p>
-              <p class="text-sm text-gray-500 mb-2">
-                Published: {{ new Date(post.published_at).toLocaleDateString() }}
-              </p>
+            <div
+                        v-for="post in posts"
+                        :key="post.id"
+                        class="flex flex-col bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition min-h-[380px]"
+                    >
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ post.title }}</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 flex-grow">{{ post.excerpt }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            Published: {{ new Date(post.published_at).toLocaleDateString() }}
+                        </p>
               <Link
                     :href="`/posts/${post.id}/`"
                     class="mt-auto self-start text-sm text-rose-500 hover:underline dark:text-rose-400"
