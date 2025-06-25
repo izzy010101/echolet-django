@@ -41,9 +41,12 @@ const props = defineProps({
                 <p class="text-sm text-gray-500 mb-8">
                   Author ID: {{ featured.user_id }}
                 </p>
-                <button class="inline-flex items-center px-6 py-3 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
-                  Read Full Story
-                </button>
+                <Link
+                    :href="`/posts/${featured.id}/`"
+                    class="inline-flex items-center px-5 py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition"
+                >
+                    Read Full Story
+                </Link>
               </div>
               <div class="relative">
                 <img :src="featured.image ?? '/media/images/sample.jpg'" alt="Featured" class="rounded-xl shadow-lg" />
@@ -59,9 +62,12 @@ const props = defineProps({
               <p class="text-sm text-gray-500 mb-2">
                 Published: {{ new Date(post.published_at).toLocaleDateString() }}
               </p>
-              <Link :href="`/posts/${post.id}/`" class="text-blue-600 hover:underline">
-                Read more ->
-              </Link>
+              <Link
+                    :href="`/posts/${post.id}/`"
+                    class="mt-auto self-start text-sm text-rose-500 hover:underline dark:text-rose-400"
+                >
+                    Read more →
+                </Link>
             </div>
           </div>
         </div>
