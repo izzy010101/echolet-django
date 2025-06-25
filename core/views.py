@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from django.template.defaultfilters import slugify
 from core.models import Post, Category
-from core.serializers import PostSerializer
+from core.serializers import PostSerializer, CommentSerializer
 from django.views import View
 from django_inertia import Inertia
 from django.urls import reverse_lazy
@@ -22,6 +22,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import RegisterForm
+from core.models import Comment
+
 
 User = get_user_model()
 
@@ -54,6 +56,45 @@ class HomeView(View):
                 'posts': serialized_posts,
             }
         )
+
+class BlogIndexView(View):
+    def get(self, request):
+        query = request.GET.get('q')
+        category_name = request.GET.get('category')
+
+        posts = Post.objects.select_related('category', 'user').order_by('-created_at')
+
+        if query:
+            posts = posts.filter(
+                Q(title__icontains=query) |
+                Q(excerpt__icontains=query) |
+                Q(category__name__icontains=query)
+            )
+
+        if category_name:
+            posts = posts.filter(category__name=category_name)
+
+        matched_category = None
+        if query:
+            matched_category = Category.objects.filter(name__icontains=query).first()
+
+        selected_category = category_name or (matched_category.name if matched_category else None)
+
+        # Use serializer for posts (like you do in HomeView)
+        serialized_posts = PostSerializer(posts, many=True).data
+
+        categories = list(Category.objects.all().values('id', 'name'))
+
+        print(serialized_posts)
+
+        return Inertia.render(request, 'Blog/Index', {
+            'posts': serialized_posts,
+            'categories': categories,
+            'searchQuery': query,
+            'selectedCategory': selected_category,
+            'auth': { 'user': request.user if request.user.is_authenticated else None },
+            'footerCategories': categories,
+        })
 
 class LoginPageView(View):
     def get(self, request):
@@ -323,14 +364,25 @@ class CreatePostView(LoginRequiredMixin, View):
 class PostDetailView(View):
     def get(self, request, post_id):
         try:
-            post = Post.objects.get(id=post_id)
+            post = Post.objects.select_related('user', 'category').get(id=post_id)
         except Post.DoesNotExist:
             return JsonResponse({'error': 'Post not found'}, status=404)
 
         serialized_post = PostSerializer(post).data
 
+        top_level_comments = Comment.objects.filter(post_id=post_id, parent=None) \
+            .select_related('user').order_by('created_at')
+
+        serialized_comments = CommentSerializer(top_level_comments, many=True).data
+
         return Inertia.render(request, 'Posts/Show', {
             'post': serialized_post,
+            'comments': serialized_comments,
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+            } if request.user.is_authenticated else None,
             'auth': {
                 'user': {
                     'id': request.user.id,

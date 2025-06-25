@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from django.utils import timezone
-from core.models import User, Category, Post
+from core.models import User, Category, Post, Comment, CommentLike
 import random
 import string
 from random import choice
@@ -54,3 +54,43 @@ class Command(BaseCommand):
             self.stdout.write("10 posts created.")
         else:
             self.stdout.write("ℹ️ Posts already exist.")
+
+        if Comment.objects.filter(post__user=user).count() == 0:
+            posts = Post.objects.filter(user=user)
+            all_users = User.objects.all()
+
+            for post in posts:
+                for i in range(1,6):
+                    parent_comment = Comment.objects.create(
+                        user=choice(all_users),
+                        post=post,
+                        parent=None,
+                        content=f"Comment {i} for post ({post.title})",
+                        created_at=timezone.now(),
+                    )
+
+                    for j in range(1,3):
+                        Comment.objects.create(
+                            user=choice(all_users),
+                            post=post,
+                            parent=parent_comment,
+                            content=f"Reply {j} to comment {i} for post ({post.title})",
+                            created_at=timezone.now(),
+                        )
+
+            self.stdout.write("Comments and replies seeded.")
+        else:
+            self.stdout.write("ℹ️ Comments already exist.")
+
+        if CommentLike.objects.count() == 0:
+            comments = Comment.objects.all()
+            all_users = list(User.objects.all())
+
+            for comment in comments:
+                liked_by = random.sample(all_users, k=min(3, len(all_users)))
+                for user in liked_by:
+                    CommentLike.objects.get_or_create(user=user, comment=comment)
+            self.stdout.write("Comment likes seeded.")
+        else:
+            self.stdout.write("ℹ️ Comment likes already exist.")
+
