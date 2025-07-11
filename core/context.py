@@ -1,6 +1,7 @@
 from core.models import Post, Category
 from django_inertia import Inertia
 from core.serializers import UserSerializer
+from django.contrib import messages
 
 def get_auth_user(request):
     return {
@@ -10,5 +11,11 @@ def get_auth_user(request):
 
 Inertia.share({
     'auth': get_auth_user,
-    'footerCategories': lambda request: list(Category.objects.values('id', 'name'))
+    'footerCategories': lambda request: list(Category.objects.values('id', 'name')),
 })
+
+
+
+
+
+

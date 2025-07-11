@@ -1,9 +1,9 @@
 import json
 from datetime import datetime
 from django.template.defaultfilters import slugify
-from core.models import Post, Category
 from core.serializers import PostSerializer, CommentSerializer
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django_inertia import Inertia
 from django.urls import reverse_lazy
 from django.db import IntegrityError
@@ -12,7 +12,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import redirect, get_object_or_404
 from django.core.validators import validate_email
@@ -21,12 +20,199 @@ from django.contrib.auth import get_user_model, update_session_auth_hash, logout
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import RegisterForm
-from core.models import Comment
-
-
+from core.models import Comment, NewsletterSubscription, CommentLike, Post, Category
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+import logging
+from django.db.models import Q
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.http import HttpResponse
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.forms import PasswordResetForm
 User = get_user_model()
+from django.contrib.auth.forms import SetPasswordForm
 
+logger = logging.getLogger(__name__)
+
+
+class ForgotPasswordView(View):
+    def get(self, request):
+        return Inertia.render(request, 'Auth/ForgotPassword', {
+            'status': request.session.pop('status', None)
+        })
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        form = PasswordResetForm(data=data)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            for user in form.get_users(email):
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                reset_url = request.build_absolute_uri(reverse('password.reset', args=[uid, token]))
+
+                send_mail(
+                    subject='Reset your password',
+                    message=f'Click the link to reset your password: {reset_url}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                )
+
+            request.session['status'] = 'Password reset link sent!'
+            return JsonResponse({'success': True, 'message': 'Password reset link sent!'})
+
+        return JsonResponse({'errors': form.errors}, status=400)
+
+
+class ResetPasswordView(View):
+    def get(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except Exception:
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            return Inertia.render(request, 'Auth/ResetPassword', {
+                'email': user.email,
+                'token': token,
+            })
+
+        return redirect('password.request')
+
+
+class ResetPasswordSubmitView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'errors': {'general': ['Invalid JSON']}}, status=400)
+
+        email = data.get('email')
+        token = data.get('token')
+
+        if not email or not token:
+            return JsonResponse({'errors': {'general': ['Missing email or token']}}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return JsonResponse({'errors': {'email': ['User not found']}}, status=404)
+
+        if not default_token_generator.check_token(user, token):
+            return JsonResponse({'errors': {'token': ['Invalid or expired token']}}, status=400)
+
+        data['new_password1'] = data.pop('password', '')
+        data['new_password2'] = data.pop('password_confirmation', '')
+
+        form = SetPasswordForm(user, data)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True, 'redirect': '/login/'})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+class PostUpdateView(View):
+    def put(self, request, id):
+        post = get_object_or_404(Post, id=id)
+
+        if post.user != request.user:
+            return HttpResponseForbidden("You don't have permission to edit this post.")
+
+        data = json.loads(request.body)
+        post.title = data.get("title", post.title)
+        post.body = data.get("body", post.body)
+        post.category_id = data.get("category_id", post.category_id)
+        post.save()
+
+        return HttpResponseRedirect('/dashboard/')
+
+class PostDeleteView(View):
+    def delete(self, request, id):
+        post = get_object_or_404(Post, id=id)
+
+        if post.user != request.user:
+            return HttpResponseForbidden("You don't have permission to delete this post.")
+
+        post.delete()
+        return HttpResponseRedirect('/dashboard/')
+
+class CommentCreateView(LoginRequiredMixin, View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        content = data.get('content', '').strip()
+        post_id = data.get('post_id')
+        parent_id = data.get('parent_id')
+
+        errors = {}
+
+        if not content:
+            errors['content'] = "Content cannot be empty."
+
+        if not post_id or not Post.objects.filter(id=post_id).exists():
+            errors['post_id'] = "Invalid post ID."
+
+        if errors:
+            return JsonResponse({'errors': errors}, status=422)
+
+        comment = Comment.objects.create(
+            user=request.user,
+            post_id=post_id,
+            parent_id=parent_id,
+            content=content
+        )
+
+        return HttpResponseRedirect('/posts/'+str(post_id))
+
+class CommentUpdateView(LoginRequiredMixin, View):
+    def put(self, request, comment_id):
+        try:
+            comment = Comment.objects.get(id=comment_id, user=request.user)
+        except Comment.DoesNotExist:
+            return JsonResponse({'error': 'Comment not found or permission denied.'}, status=404)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        content = data.get('content', '').strip()
+
+        if not content:
+            return JsonResponse({'errors': {'content': 'Content cannot be empty.'}}, status=422)
+
+        comment.content = content
+        comment.save()
+
+        return HttpResponseRedirect('/posts/'+str(comment.post.id))
+
+class CommentDeleteView(LoginRequiredMixin, View):
+    def delete(self, request, comment_id):
+        try:
+            comment = Comment.objects.get(id=comment_id, user=request.user)
+        except Comment.DoesNotExist:
+            return JsonResponse({'error': 'Comment not found or permission denied.'}, status=404)
+
+        id = comment.post.id
+
+        comment.delete()
+        return HttpResponseRedirect('/posts/'+str(id))
 
 class TestView(View):
     def get(self, request):
@@ -35,7 +221,16 @@ class TestView(View):
 
 class HomeView(View):
     def get(self, request):
-        posts = Post.objects.order_by('-published_at')[:10]
+        query = request.GET.get('q', '').strip()
+
+        if query:
+            posts = Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(body__icontains=query)
+            ).order_by('-published_at')[:10]
+        else:
+            posts = Post.objects.order_by('-published_at')[:10]
+
         serialized_posts = PostSerializer(posts, many=True).data
 
         featured = serialized_posts[0] if serialized_posts else None
@@ -47,6 +242,7 @@ class HomeView(View):
             props={
                 'featured': featured,
                 'posts': serialized_posts,
+                'query': query or '',
             }
         )
 
@@ -148,32 +344,44 @@ class RegisterPageView(View):
 
         if form.is_valid():
             try:
-                user = form.save()
-                login(request, user)
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+                # login(request, user)
 
                 try:
-                    send_mail(
-                        'Welcome!',
-                        'Thanks for joining.',
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        fail_silently=True,
+                    token = default_token_generator.make_token(user)
+                    uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+                    verify_url = request.build_absolute_uri(
+                        reverse('verify-email', args=[uid, token])
                     )
+
+                    send_mail(
+                        subject='Verify Your Email',
+                        message=f'Click the link to verify your email: {verify_url}',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                    )
+
+                    return redirect('login')
                 except Exception as e:
                     print(f"Email error: {e}")
 
                 request.session['status'] = 'Registration successful!'
                 return Inertia.location(reverse_lazy('home'))
 
-            except IntegrityError:
+            except IntegrityError as e:
+                print("Integrity Error")
+                print(e)
                 return Inertia.render(request, 'Auth/Register', {
                     'errors': {'email': ['User already exists.']},
                     'status': 'Email already in use.',
                     'old_input': data,
-                    'csrf_token': get_token(request),  #Re-send token if rendering again
+                    'csrf_token': get_token(request),
                 })
 
-        #Validation failed — always send dict
         return Inertia.render(request, 'Auth/Register', {
             'errors': form.errors.get_json_data() if form.errors else {},
             'status': 'Please correct the errors below.',
@@ -181,13 +389,39 @@ class RegisterPageView(View):
             'csrf_token': get_token(request),
         })
 
+def verify_email(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, 'Email verified successfully. You can now log in.')
+    else:
+        messages.error(request, 'Verification link is invalid or expired.')
+
+    return redirect('login')
+
 
 class DashboardView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        posts = list(Post.objects.filter(user=user).values(
+        query = request.GET.get('q', '').strip().lower()
+
+        all_posts = Post.objects.filter(user=user)
+
+        if query:
+            all_posts = all_posts.filter(
+                Q(title__icontains=query) | Q(body__icontains=query)
+            )
+
+        posts = list(all_posts.values(
             'id', 'title', 'body', 'category__name'
         ))
+
         categories = list(Category.objects.all().values('id', 'name'))
 
         return Inertia.render(request, 'Dashboard', {
@@ -257,7 +491,9 @@ class UpdateProfileView(LoginRequiredMixin, View):
         user.email = email
         user.save()
 
-        return JsonResponse({'message': 'Profile updated successfully.'})
+        messages.success(request, "Profile updated successfully.")
+
+        return redirect(request.META.get('HTTP_REFERER', '/profile'))
 
 class UpdatePasswordView(LoginRequiredMixin, View):
     def post(self, request):
@@ -285,13 +521,13 @@ class UpdatePasswordView(LoginRequiredMixin, View):
             errors['password'] = list(e.messages)
 
         if errors:
-            return JsonResponse({'errors': errors}, status=422)
+            JsonResponse({'errors': {'content': 'Content cannot be empty.'}}, status=422)
 
         user.set_password(new_password)
         user.save()
         update_session_auth_hash(request, user)
 
-        return JsonResponse({'message': 'Password updated successfully.'})
+        return HttpResponseRedirect('/profile/')
 
 class DeleteAccountView(LoginRequiredMixin, View):
     def post(self, request):
@@ -352,7 +588,7 @@ class CreatePostView(LoginRequiredMixin, View):
             published_at=datetime.now()
         )
 
-        return JsonResponse({'message': 'Post created successfully.'})
+        return HttpResponseRedirect('/dashboard/')
 
 class PostDetailView(View):
     def get(self, request, post_id):
@@ -407,11 +643,13 @@ class CategoryDetailView(View):
 
 class CategoriesPageView(View):
     def get(self, request):
-
-
+        query = request.GET.get('q', '').strip()
         categories = []
 
         for category in Category.objects.all():
+            if query and query not in category.name.lower():
+                continue
+
             posts = Post.objects.filter(category=category).values(
                 'id', 'title', 'excerpt', 'body'
             )
@@ -446,3 +684,56 @@ class CategoriesPageView(View):
 class ContactView(View):
     def get(self, request):
         return Inertia.render(request, 'Contact')
+
+class NewsletterSubscribeView(View):
+    def post(self, request):
+        email = request.POST.get('email', '').strip()
+
+        print(email)
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            return JsonResponse({'message': 'Please enter a valid email address.'}, status=400)
+
+        if NewsletterSubscription.objects.filter(email=email).exists():
+            return JsonResponse({'message': 'You are already subscribed.'}, status=200)
+
+        NewsletterSubscription.objects.create(email=email)
+
+        try:
+            send_mail(
+                subject="Welcome to our Newsletter!",
+                message="Thank you for subscribing.",
+                from_email="newsletter@example.com",
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Email sending failed: {e}")
+            return JsonResponse({'message': 'Subscription saved, but failed to send email.'}, status=500)
+
+        return JsonResponse({'message': 'Thanks for subscribing!'}, status=200)
+
+class ToggleLikeView(LoginRequiredMixin, View):
+    def post(self, request, comment_id):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return JsonResponse({'error': 'Comment not found'}, status=404)
+
+        like, created = CommentLike.objects.get_or_create(
+            user=request.user,
+            comment=comment
+        )
+
+        if not created:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+
+        return JsonResponse({
+            'liked': liked,
+            'likes_count': comment.likes.count()
+        })

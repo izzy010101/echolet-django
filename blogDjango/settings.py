@@ -111,6 +111,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '38fcd0bf33caba'
+EMAIL_HOST_PASSWORD = 'bcd6cdfded0e73'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'noreply@echolet.tes'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

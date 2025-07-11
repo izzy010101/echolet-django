@@ -1,10 +1,13 @@
 from django.urls import path
-from .views import HomeView, TestView, CategoriesPageView, LoginPageView, RegisterPageView, LogoutView, DashboardView, \
-    ProfileView, UpdateProfileView, UpdatePasswordView, DeleteAccountView, CreatePostView, PostDetailView, \
-    CategoryDetailView, BlogIndexView, ContactView
-
+from .views import *
+from django.urls import path
+from django.contrib.auth import views as auth_views
+from core import views as custom_views
 urlpatterns = [
     # path('home/', views.home_view, name='home'),
+    path('forgot-password/', custom_views.ForgotPasswordView.as_view(), name='password.request'),
+    path('reset-password/<uidb64>/<token>/', custom_views.ResetPasswordView.as_view(), name='password.reset'),
+    path('reset-password/', custom_views.ResetPasswordSubmitView.as_view(), name='password.store'),
     path('', HomeView.as_view(), name='home'),
     path("test/", TestView.as_view(), name="test"),
     path('login/', LoginPageView.as_view(), name='login'),
@@ -21,4 +24,12 @@ urlpatterns = [
     path('categories/<int:category_id>/', CategoryDetailView.as_view(), name='categories.show'),
     path('blog/', BlogIndexView.as_view(), name='blog_index'),
     path('contact/', ContactView.as_view(), name='contact'),
+    path('newsletter/subscribe/', NewsletterSubscribeView.as_view(), name='newsletter.subscribe'),
+    path('comments/<int:comment_id>/like', ToggleLikeView.as_view(), name='comment-like'),
+    path('comments/', CommentCreateView.as_view(), name='comments.store'),
+    path('comments/<int:comment_id>/', CommentUpdateView.as_view(), name='comments.update'),
+    path('comments/<int:comment_id>/delete/', CommentDeleteView.as_view(), name='comments.destroy'),
+    path('posts/<int:id>/update/', PostUpdateView.as_view(), name='posts.update'),
+    path('posts/<int:id>/delete/', PostDeleteView.as_view(), name='posts.destroy'),
+    path('verify/<uidb64>/<token>/', verify_email, name='verify-email'),
 ]

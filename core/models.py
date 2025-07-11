@@ -5,6 +5,14 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
 
+
+class NewsletterSubscription(models.Model):
+    email = models.EmailField(unique=True)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+
 # Custom User Model
 class User(AbstractUser):
     email_verified_at = models.DateTimeField(null=True, blank=True)
@@ -30,6 +38,14 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.content[:50]
+
+class CommentLike(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'comment')
 
 class CommentLike(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

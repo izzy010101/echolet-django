@@ -157,9 +157,9 @@ const submit = () => {
                 </span>
               </label>
 
-              <Link v-if="canResetPassword" :href="route('password.request')" class="text-sm font-medium text-rose-500 hover:text-rose-600">
+              <a href="/forgot-password" class="text-sm font-medium text-rose-500 hover:text-rose-600">
                 Forgot password?
-              </Link>
+              </a>
             </div>
 
             <!-- Submit Button -->

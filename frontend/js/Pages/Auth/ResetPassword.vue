@@ -20,10 +20,11 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.store'), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
-    });
+  form.post('/reset-password/', {
+    onFinish: () => form.reset('email'),
+  });
 };
+
 </script>
 
 <template>
