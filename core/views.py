@@ -39,6 +39,8 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.forms import PasswordResetForm
 User = get_user_model()
 from django.contrib.auth.forms import SetPasswordForm
+from django.views import View
+
 
 logger = logging.getLogger(__name__)
 
