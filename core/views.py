@@ -40,7 +40,7 @@ from django.contrib.auth.forms import PasswordResetForm
 User = get_user_model()
 from django.contrib.auth.forms import SetPasswordForm
 from django.views import View
-
+from django.db import connection
 
 logger = logging.getLogger(__name__)
 
@@ -223,6 +223,9 @@ class TestView(View):
 
 class HomeView(View):
     def get(self, request):
+        print("SQL qqueries: ", end="")
+        print(len(connection.queries))
+
         query = request.GET.get('q', '').strip()
 
         if query:

@@ -3,6 +3,8 @@ from .views import *
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from core import views as custom_views
+from django.urls import path, include
+
 urlpatterns = [
     # path('home/', views.home_view, name='home'),
     path('forgot-password/', custom_views.ForgotPasswordView.as_view(), name='password.request'),
@@ -33,3 +35,10 @@ urlpatterns = [
     path('posts/<int:id>/delete/', PostDeleteView.as_view(), name='posts.destroy'),
     path('verify/<uidb64>/<token>/', verify_email, name='verify-email'),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ]

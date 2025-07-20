@@ -3,6 +3,7 @@ import Header from '@/Components/Header.vue'
 import Footer from '@/Components/Footer.vue'
 import {Head, usePage} from '@inertiajs/vue3'
 import CommentsSection from '@/Components/Comments/CommentSection.vue'
+import CommentForm from "@/Components/Comments/CommentForm.vue";
 
 const props = defineProps({
     post: Object,
@@ -27,6 +28,13 @@ console.log("props", props)
                 <h2 class="text-2xl font-semibold mb-4">Comments</h2>
 
               <p>Total comments: {{ comments?.length }}</p>
+
+              <!-- Show comment form only if user is logged in -->
+        <CommentForm
+            v-if="user"
+            :post-id="postId"
+            :user="user"
+        />
 
                 <div v-if="comments.length > 0">
                     <CommentsSection

@@ -13,12 +13,7 @@ const props = defineProps({
 
 <template>
     <div class="space-y-6">
-        <!-- Show comment form only if user is logged in -->
-        <CommentForm
-            v-if="user"
-            :post-id="postId"
-            :user="user"
-        />
+
 
         <!-- List all top-level comments -->
         <CommentItem
