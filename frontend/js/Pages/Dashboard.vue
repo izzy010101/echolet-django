@@ -72,6 +72,10 @@ const submit = () => {
         form.reset();
         window.location.reload();
       },
+      onError: () => {
+        console.log("errors...")
+        console.log(form.errors) // should now contain title, content
+      },
     })
 };
 
@@ -120,6 +124,7 @@ const deletePost = (id) => {
     <Head title="Dashboard" />
 
     <AppLayout :auth="auth" :footer-categories="footerCategories">
+
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-white">Dashboard</h2>
             <div
@@ -130,6 +135,7 @@ const deletePost = (id) => {
             </div>
         </template>
 
+      <div class="bg-white dark:bg-gray-900 transition-colors duration-300">
         <div class="py-12">
             <div v-if="localSuccessMessage" class="mb-6 text-center">
                 <div class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 px-4 py-2 rounded-lg shadow font-medium">
@@ -174,7 +180,7 @@ const deletePost = (id) => {
                     <form @submit.prevent="submit" class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Title</label>
-                            <input
+                            <input required
                                 v-model="form.title"
                                 type="text"
                                 placeholder="Enter post title"
@@ -184,6 +190,7 @@ const deletePost = (id) => {
                                     'border-gray-300 dark:border-gray-600': !validationErrors.title && !form.errors.title
                                 }"
                             />
+
                             <div v-if="validationErrors.title || form.errors.title" class="text-red-500 text-sm mt-1">
                                 {{ validationErrors.title || form.errors.title }}
                             </div>
@@ -191,7 +198,7 @@ const deletePost = (id) => {
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Content</label>
-                            <textarea
+                            <textarea required
                                 v-model="form.content"
                                 rows="4"
                                 placeholder="Write your post..."
@@ -232,6 +239,7 @@ const deletePost = (id) => {
                 </div>
             </div>
         </div>
+      </div>
     </AppLayout>
 
     <EditPostModal

@@ -25,13 +25,13 @@ onMounted(() => {
       <section class="py-16 lg:py-24">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-16">
-            <h1 class="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Welcome to Echolet
-            </h1>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Stories, insights, and advice from developers and founders building in the modern web.
-            </p>
-          </div>
+          <h1 class="text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+            Welcome to Echolet
+          </h1>
+          <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            Stories, insights, and advice from developers and founders building in the modern web.
+          </p>
+        </div>
 
           <!-- Featured Article -->
           <div v-if="featured" class="bg-gray-50 rounded-2xl p-8 lg:p-12 mb-16">
