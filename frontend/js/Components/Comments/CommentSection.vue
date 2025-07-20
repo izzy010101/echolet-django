@@ -14,7 +14,6 @@ const props = defineProps({
 <template>
     <div class="space-y-6">
 
-
         <!-- List all top-level comments -->
         <CommentItem
             v-for="comment in comments"

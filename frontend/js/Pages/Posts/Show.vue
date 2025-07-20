@@ -9,6 +9,7 @@ const props = defineProps({
     post: Object,
     comments: Object,
     auth: Object,
+    user: Object,
 })
 const user = usePage().props.auth.user;
 console.log("props", props)
@@ -28,13 +29,12 @@ console.log("props", props)
                 <h2 class="text-2xl font-semibold mb-4">Comments</h2>
 
               <p>Total comments: {{ comments?.length }}</p>
-
-              <!-- Show comment form only if user is logged in -->
-        <CommentForm
-            v-if="user"
-            :post-id="postId"
-            :user="user"
-        />
+                test
+                <CommentForm
+                    v-if="user"
+                    :post-id="post.id"
+                    :user="user"
+                />
 
                 <div v-if="comments.length > 0">
                     <CommentsSection

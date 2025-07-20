@@ -6,11 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b17da71c-7a11-454a-826c-22db9cc5697f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blogDjango/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/blogDjango/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/js/Components/Comments/CommentSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/js/Components/Comments/CommentSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/js/Pages/Posts/Show.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/js/Pages/Posts/Show.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
