@@ -68,7 +68,7 @@ function goToCategory(name) {
               class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition flex flex-col"
           >
                     <span class="text-rose-500 dark:text-rose-400 text-xs font-semibold mb-2">
-                        {{ post.category.name }}
+                        {{ post.category?.name || 'Uncategorized' }}
                     </span>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
               {{ post.title }}
