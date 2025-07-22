@@ -47,6 +47,8 @@ logger = logging.getLogger(__name__)
 
 class ForgotPasswordView(View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         return Inertia.render(request, 'Auth/ForgotPassword', {
             'status': request.session.pop('status', None)
         })
@@ -80,6 +82,8 @@ class ForgotPasswordView(View):
 
 class ResetPasswordView(View):
     def get(self, request, uidb64, token):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
             user = User.objects.get(pk=uid)
@@ -97,6 +101,8 @@ class ResetPasswordView(View):
 
 class ResetPasswordSubmitView(View):
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -128,6 +134,8 @@ class ResetPasswordSubmitView(View):
 
 class PostUpdateView(View):
     def put(self, request, id):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         post = get_object_or_404(Post, id=id)
 
         if post.user != request.user:
@@ -143,6 +151,8 @@ class PostUpdateView(View):
 
 class PostDeleteView(View):
     def delete(self, request, id):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         post = get_object_or_404(Post, id=id)
 
         if post.user != request.user:
@@ -153,6 +163,8 @@ class PostDeleteView(View):
 
 class CommentCreateView(LoginRequiredMixin, View):
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -184,6 +196,8 @@ class CommentCreateView(LoginRequiredMixin, View):
 
 class CommentUpdateView(LoginRequiredMixin, View):
     def put(self, request, comment_id):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             comment = Comment.objects.get(id=comment_id, user=request.user)
         except Comment.DoesNotExist:
@@ -206,6 +220,8 @@ class CommentUpdateView(LoginRequiredMixin, View):
 
 class CommentDeleteView(LoginRequiredMixin, View):
     def delete(self, request, comment_id):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             comment = Comment.objects.get(id=comment_id, user=request.user)
         except Comment.DoesNotExist:
@@ -218,12 +234,14 @@ class CommentDeleteView(LoginRequiredMixin, View):
 
 class TestView(View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         return Inertia.render(request, component='Test', props={'message': 'Zdravo iz Djangoa!'})
 
 
 class HomeView(View):
     def get(self, request):
-        print("SQL qqueries: ", end="")
+        print("SQL qqueries: ",end="")
         print(len(connection.queries))
 
         query = request.GET.get('q', '').strip()
@@ -253,6 +271,9 @@ class HomeView(View):
 
 class BlogIndexView(View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
+
         query = request.GET.get('q')
         category_name = request.GET.get('category')
 
@@ -274,12 +295,9 @@ class BlogIndexView(View):
 
         selected_category = category_name or (matched_category.name if matched_category else None)
 
-        # Use serializer for posts (like you do in HomeView)
         serialized_posts = PostSerializer(posts, many=True).data
 
         categories = list(Category.objects.all().values('id', 'name'))
-
-        print(serialized_posts)
 
         return Inertia.render(request, 'Blog/Index', {
             'posts': serialized_posts,
@@ -292,9 +310,13 @@ class BlogIndexView(View):
 
 class LoginPageView(View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         return Inertia.render(request, 'Auth/Login', {})
 
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -324,12 +346,17 @@ class LoginPageView(View):
 class LogoutView(View):
     @method_decorator(csrf_exempt)
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         logout(request)
         return redirect(reverse_lazy('home'))
 
 
 class RegisterPageView(View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
+
         csrf_token = get_token(request)
         print(f"DJANGO RENDER: CSRF Token for page load: {csrf_token}")
         return Inertia.render(request, 'Auth/Register', {
@@ -395,6 +422,9 @@ class RegisterPageView(View):
         })
 
 def verify_email(request, uidb64, token):
+    print("SQL qqueries: ", end="")
+    print(len(connection.queries))
+
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = User.objects.get(pk=uid)
@@ -404,6 +434,15 @@ def verify_email(request, uidb64, token):
     if user and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
+
+        send_mail(
+            subject="Welcome!",
+            message="Thank you for verified Email.",
+            from_email="noreply@example.com",
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        print("email sent to user: "+str(user.email))
         messages.success(request, 'Email verified successfully. You can now log in.')
     else:
         messages.error(request, 'Verification link is invalid or expired.')
@@ -413,6 +452,8 @@ def verify_email(request, uidb64, token):
 
 class DashboardView(LoginRequiredMixin, View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         user = request.user
         query = request.GET.get('q', '').strip().lower()
 
@@ -444,6 +485,8 @@ class DashboardView(LoginRequiredMixin, View):
 
 class ProfileView(LoginRequiredMixin, View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         user = request.user
 
         return Inertia.render(request, 'Profile/Edit', {
@@ -464,6 +507,8 @@ class ProfileView(LoginRequiredMixin, View):
 
 class UpdateProfileView(LoginRequiredMixin, View):
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -502,6 +547,8 @@ class UpdateProfileView(LoginRequiredMixin, View):
 
 class UpdatePasswordView(LoginRequiredMixin, View):
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -536,6 +583,8 @@ class UpdatePasswordView(LoginRequiredMixin, View):
 
 class DeleteAccountView(LoginRequiredMixin, View):
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -552,6 +601,8 @@ class DeleteAccountView(LoginRequiredMixin, View):
 
 class CreatePostView(LoginRequiredMixin, View):
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -597,6 +648,8 @@ class CreatePostView(LoginRequiredMixin, View):
 
 class PostDetailView(View):
     def get(self, request, post_id):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         try:
             post = Post.objects.select_related('user', 'category').get(id=post_id)
         except Post.DoesNotExist:
@@ -627,6 +680,9 @@ class PostDetailView(View):
 
 class CategoryDetailView(View):
     def get(self, request, category_id):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
+
         category = get_object_or_404(Category, id=category_id)
         posts = Post.objects.filter(category=category)
         categories = list(Category.objects.all().values('id', 'name'))
@@ -648,6 +704,9 @@ class CategoryDetailView(View):
 
 class CategoriesPageView(View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
+
         query = request.GET.get('q', '').strip()
         categories = []
 
@@ -666,16 +725,6 @@ class CategoriesPageView(View):
                 'posts': [dict(p) for p in posts],
             })
 
-        print({
-            'categories': categories,
-            'auth': {
-                'user': {
-                    'id': request.user.id,
-                    'email': request.user.email,
-                } if request.user.is_authenticated else None
-            }
-        })
-
         return Inertia.render(request, 'Categories/Index', {
             'categories': categories,
             'auth': {
@@ -688,10 +737,15 @@ class CategoriesPageView(View):
 
 class ContactView(View):
     def get(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
         return Inertia.render(request, 'Contact')
 
 class NewsletterSubscribeView(View):
     def post(self, request):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
+
         email = request.POST.get('email', '').strip()
 
         print(email)
@@ -722,6 +776,9 @@ class NewsletterSubscribeView(View):
 
 class ToggleLikeView(LoginRequiredMixin, View):
     def post(self, request, comment_id):
+        print("SQL qqueries: ",end="")
+        print(len(connection.queries))
+
         try:
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
