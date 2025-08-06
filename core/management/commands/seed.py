@@ -7,7 +7,7 @@ import string
 from random import choice
 
 class Command(BaseCommand):
-    help = 'Seed database with demo user, categories, and posts'
+    help = 'Seed database with demo user, categories, posts, comments and likes'
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Seeding user, categories, and posts...")
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             user.save()
             self.stdout.write("Created demo user.")
         else:
-            self.stdout.write("ℹ️ Demo user already exists.")
+            self.stdout.write("Demo user already exists.")
 
         existing_categories = set(Category.objects.filter(user=user).values_list('name', flat=True))
         categories = ['Tech', 'Design', 'Wellness', 'Startups', 'Leadership']
@@ -36,25 +36,26 @@ class Command(BaseCommand):
                 Category.objects.create(name=name, user=user)
         self.stdout.write("Categories seeded.")
 
-        # Create 10 posts for the demo user
-        if Post.objects.filter(user=user).count() == 0:
-            available_categories = list(Category.objects.filter(user=user))
+        # Delete old posts to avoid duplication
+        Post.objects.filter(user=user).delete()
 
-            for i in range(10):
-                title = f"Sample Post {i + 1}"
-                Post.objects.create(
-                    user=user,
-                    title=title,
-                    category=choice(available_categories) if available_categories else None,
-                    slug=slugify(title + '-' + ''.join(random.choices(string.ascii_lowercase, k=5))),
-                    excerpt=f"This is a sample excerpt for post {i + 1}",
-                    body="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.",
-                    published_at=timezone.now()
-                )
-            self.stdout.write("10 posts created.")
-        else:
-            self.stdout.write("ℹ️ Posts already exist.")
+        # Create 1000 posts for the demo user
+        available_categories = list(Category.objects.filter(user=user))
 
+        for i in range(1000):
+            title = f"Sample Post {i + 1}"
+            Post.objects.create(
+                user=user,
+                title=title,
+                category=choice(available_categories) if available_categories else None,
+                slug=slugify(title + '-' + ''.join(random.choices(string.ascii_lowercase, k=5))),
+                excerpt=f"This is a sample excerpt for post {i + 1}",
+                body="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.",
+                published_at=timezone.now()
+            )
+        self.stdout.write("1000 posts created.")
+
+        # Seed comments and replies if not already exist
         if Comment.objects.filter(post__user=user).count() == 0:
             posts = Post.objects.filter(user=user)
             all_users = User.objects.all()
@@ -80,8 +81,9 @@ class Command(BaseCommand):
 
             self.stdout.write("Comments and replies seeded.")
         else:
-            self.stdout.write("ℹ️ Comments already exist.")
+            self.stdout.write("Comments already exist.")
 
+        # Seed likes if not already exist
         if CommentLike.objects.count() == 0:
             comments = Comment.objects.all()
             all_users = list(User.objects.all())
@@ -92,5 +94,4 @@ class Command(BaseCommand):
                     CommentLike.objects.get_or_create(user=user, comment=comment)
             self.stdout.write("Comment likes seeded.")
         else:
-            self.stdout.write("ℹ️ Comment likes already exist.")
-
+            self.stdout.write("Comment likes already exist.")
