@@ -19,17 +19,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 INERTIA_LAYOUT = 'index.html'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-^dv%dsa9v+2f^n^&x1&cs55i+tz*h_+si+n42$a5baht$(2*oc'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# Debug is turned off for benchmarking
 DEBUG = True
-
-ALLOWED_HOSTS = []
-
+# false za n+1
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0'] for N+1
 
 # Application definition
 
@@ -53,7 +50,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django_inertia.middleware.InertiaMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # može ostati isključen ako testiraš API
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -70,8 +67,7 @@ ROOT_URLCONF = 'blogDjango.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -85,27 +81,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'blogDjango.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME', 'blog_db'),
         'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'your_password'),
-        'HOST': os.getenv('DB_HOST', 'host.docker.internal'),  # Important!
+        'HOST': os.getenv('DB_HOST', 'host.docker.internal'),  # changed from host.docker.internal to 127.0.0.1, reverse later
         'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
 
 
-
-
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -121,6 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Email setup
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
 EMAIL_HOST_USER = '38fcd0bf33caba'
@@ -130,38 +120,46 @@ EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'noreply@echolet.tes'
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-DEBUG = True # Keep this as True for local development
-
-# IMPORTANT for local development over HTTP:
+# Sigurnost kolačića u testnom okruženju
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
-
-# Also good to be explicit for development:
-CSRF_COOKIE_HTTPONLY = True # Prevent client-side JS from accessing CSRF cookie
+CSRF_COOKIE_HTTPONLY = True
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media' #adding media
+MEDIA_ROOT = BASE_DIR / 'media'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Loguj samo ERROR i gore za HTTP server
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Loguj samo ozbiljne SQL greške (ERROR i gore)
+            'propagate': False,
+        },
+    },
+}
+
 
